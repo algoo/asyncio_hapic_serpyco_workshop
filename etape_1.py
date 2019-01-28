@@ -1,6 +1,7 @@
 # coding: utf-8
 import datetime
 import json
+from dataclasses import dataclass
 
 import aiohttp_autoreload
 import serpyco
@@ -11,7 +12,6 @@ from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
 
 import utils
-from dataclasses import dataclass
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)

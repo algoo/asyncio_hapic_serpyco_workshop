@@ -3,8 +3,6 @@ import asyncio
 import datetime
 import json
 import random
-import socket  # here in order not to avoid
-import sys
 import typing
 
 import aiohttp_autoreload
@@ -17,20 +15,15 @@ from hapic.processor.serpyco import SerpycoProcessor
 
 from dataclasses import dataclass
 
+import utils
+
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)
 
 
-
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 1))  # connect() for UDP doesn't send packets
-    return s.getsockname()[0]
-
-
 @dataclass
 class Location(object):
-    def get_openstreetmap_url(obj: "Location") -> dict:
+    def get_openstreetmap_url(obj: "Location") -> str:
         return f"https://www.openstreetmap.org/search?#map=13/{obj.lat}/{obj.lon}"
 
     lon: float = serpyco.number_field(cast_on_load=True)
@@ -49,7 +42,6 @@ class PartialSensor:
 @dataclass
 class Sensor:
     name: str
-    # location: typing.Optional[Location] = None
     location: Location = None
 
 
@@ -61,8 +53,7 @@ class About(object):
     @staticmethod
     @serpyco.post_dump
     def add_python_version(data: dict) -> dict:
-        v = sys.version_info
-        data["python_version"] = f"{v.major}.{v.minor}.{v.micro}"
+        data["python_version"] = utils.get_python_version()
         return data
 
 
@@ -83,7 +74,13 @@ class SensorName:
 @hapic.input_path(EmptyPath)
 @hapic.output_body(About)
 async def GET_about(request, hapic_data: HapicData):
-    return About(current_datetime=datetime.datetime.now(), ip=get_ip())
+    return About(current_datetime=datetime.datetime.now(), ip=utils.get_ip())
+
+
+@hapic.with_api_doc()
+@hapic.output_body(Sensor)
+async def GET_sensor(request):
+    return sensor
 
 
 @hapic.with_api_doc()
@@ -102,8 +99,6 @@ async def PATCH_sensor(request, hapic_data: HapicData):
     return sensor
 
 
-
-
 @dataclass
 class Measure:
     datetime: datetime.datetime
@@ -115,7 +110,7 @@ class Measure:
 @hapic.output_stream(Measure)
 async def GET_sensor_live(request, hapic_data: HapicData):
     while True:
-        yield Measure(datetime.datetime.now(), random.uniform(36.0, 39.0))  # FIXME in utils
+        yield Measure(datetime.datetime.now(), utils.get_temperature())
         await asyncio.sleep(1)
 
 
@@ -124,6 +119,7 @@ app.add_routes(
     [
         web.get(r"/about", GET_about),
         web.patch(r"/sensor", PATCH_sensor),
+        web.get(r"/sensor", GET_sensor),
         web.get(r"/sensor/live", GET_sensor_live),
     ]
 )

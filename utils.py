@@ -1,5 +1,5 @@
 # coding: utf-8
-
+import random
 import socket  # here in order not to avoid
 import sys
 
@@ -13,3 +13,7 @@ def get_ip() -> str:
 def get_python_version() -> str:
     v = sys.version_info
     return f"{v.major}.{v.minor}.{v.micro}"
+
+
+def get_temperature() -> float:
+    return random.uniform(36.0, 39.0)
