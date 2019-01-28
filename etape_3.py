@@ -1,26 +1,25 @@
 # coding: utf-8
-import typing
+import asyncio
+import datetime
 import json
+import random
 import socket  # here in order not to avoid
 import sys
+import typing
 
-from dataclasses import dataclass
-
-from aiohttp import web
 import aiohttp_autoreload
-
-from hapic import Hapic
-from hapic import HapicData
+import serpyco
+from aiohttp import web
+from hapic import Hapic, HapicData
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
-import serpyco
-import asyncio
+
+from dataclasses import dataclass
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)
 
-import datetime
 
 
 def get_ip():
@@ -59,6 +58,7 @@ class About(object):
     current_datetime: datetime.datetime
     ip: str
 
+    @staticmethod
     @serpyco.post_dump
     def add_python_version(data: dict) -> dict:
         v = sys.version_info
@@ -102,13 +102,12 @@ async def PATCH_sensor(request, hapic_data: HapicData):
     return sensor
 
 
-import random
 
 
 @dataclass
 class Measure:
     datetime: datetime.datetime
-    value: float
+    temperature: float
 
 
 @hapic.with_api_doc()
@@ -116,7 +115,7 @@ class Measure:
 @hapic.output_stream(Measure)
 async def GET_sensor_live(request, hapic_data: HapicData):
     while True:
-        yield Measure(datetime.datetime.now(), random.uniform(36.0, 39.0))
+        yield Measure(datetime.datetime.now(), random.uniform(36.0, 39.0))  # FIXME in utils
         await asyncio.sleep(1)
 
 

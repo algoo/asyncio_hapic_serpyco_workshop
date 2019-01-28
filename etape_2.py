@@ -1,26 +1,23 @@
 # coding: utf-8
-import typing
+import datetime
 import json
 import socket  # here in order not to avoid
 import sys
+import typing
 
-from dataclasses import dataclass
-
-from aiohttp import web
 import aiohttp_autoreload
-
-from hapic import Hapic
-from hapic import HapicData
+import serpyco
+from aiohttp import web
+from hapic import Hapic, HapicData
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
-import serpyco
 
+from dataclasses import dataclass
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)
 
-import datetime
 
 
 def get_ip():
@@ -31,7 +28,7 @@ def get_ip():
 
 @dataclass
 class Location(object):
-    def get_openstreetmap_url(obj: "Location") -> dict:
+    def get_openstreetmap_url(obj: "Location") -> str:
         return f"https://www.openstreetmap.org/search?#map=13/{obj.lat}/{obj.lon}"
 
     lon: float = serpyco.number_field(cast_on_load=True)
@@ -53,6 +50,7 @@ class About(object):
     current_datetime: datetime.datetime
     ip: str
 
+    @staticmethod
     @serpyco.post_dump
     def add_python_version(data: dict) -> dict:
         v = sys.version_info

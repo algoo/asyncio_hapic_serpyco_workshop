@@ -1,18 +1,17 @@
 # coding: utf-8
-import json
 import datetime
+import json
 
-from dataclasses import dataclass
-
-from aiohttp import web
 import aiohttp_autoreload
-
+import serpyco
+from aiohttp import web
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
-import serpyco
+
 import utils
+from dataclasses import dataclass
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)
@@ -23,6 +22,7 @@ class About(object):
     current_datetime: datetime.datetime
     ip: str
 
+    @staticmethod
     @serpyco.post_dump
     def add_python_version(data: dict) -> dict:
         data["python_version"] = utils.get_python_version()
