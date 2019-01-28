@@ -22,26 +22,31 @@ hapic.set_processor_class(SerpycoProcessor)
 
 import datetime
 
+
 def get_ip():
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
-  return s.getsockname()[0]
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 1))  # connect() for UDP doesn't send packets
+    return s.getsockname()[0]
+
 
 @dataclass
 class Location(object):
-  def get_openstreetmap_url(obj: "Location") -> dict:
-    return f"https://www.openstreetmap.org/search?#map=13/{obj.lat}/{obj.lon}"
+    def get_openstreetmap_url(obj: "Location") -> dict:
+        return f"https://www.openstreetmap.org/search?#map=13/{obj.lat}/{obj.lon}"
 
-  lon: float=serpyco.number_field(cast_on_load=True)
-  lat: float=serpyco.number_field(cast_on_load=True)
-  url: typing.Optional[str] = serpyco.string_field(getter=get_openstreetmap_url, default=None)
+    lon: float = serpyco.number_field(cast_on_load=True)
+    lat: float = serpyco.number_field(cast_on_load=True)
+    url: typing.Optional[str] = serpyco.string_field(
+        getter=get_openstreetmap_url, default=None
+    )
 
 
 @dataclass
 class Sensor:
-  name: str
-  # location: typing.Optional[Location] = None
-  location: Location = None
+    name: str
+    # location: typing.Optional[Location] = None
+    location: Location = None
+
 
 @dataclass
 class About(object):
@@ -51,66 +56,70 @@ class About(object):
     @serpyco.post_dump
     def add_python_version(data: dict) -> dict:
         v = sys.version_info
-        data['python_version'] = f"{v.major}.{v.minor}.{v.micro}"
+        data["python_version"] = f"{v.major}.{v.minor}.{v.micro}"
         return data
 
-sensor = Sensor(name="<no name>", location=Location(lon=19,lat=32))
+
+sensor = Sensor(name="<no name>", location=Location(lon=19, lat=32))
+
 
 @dataclass
 class EmptyPath(object):
-  pass
+    pass
+
 
 @dataclass
 class SensorName:
-  name: str
+    name: str
+
 
 @hapic.with_api_doc()
 @hapic.output_body(About)
 async def GET_about(request):
-    return About(
-      current_datetime=datetime.datetime.now(),
-      ip=get_ip(),
-    )
+    return About(current_datetime=datetime.datetime.now(), ip=get_ip())
+
 
 @hapic.with_api_doc()
 @hapic.input_path(EmptyPath)
 @hapic.input_body(SensorName)
 @hapic.output_body(Sensor)
 async def PUT_sensor_name(request):
-  print(hapic_data.body)
-  sensor.name = hapic_data.body.name
-  return sensor
+    print(hapic_data.body)
+    sensor.name = hapic_data.body.name
+    return sensor
+
 
 @hapic.with_api_doc()
 @hapic.input_path(EmptyPath)
 @hapic.input_body(Location)
 @hapic.output_body(Sensor)
 async def PUT_sensor_location(request, hapic_data: HapicData):
-  print(hapic_data.body)
-  sensor.location = Location(lat=hapic_data.body.lat, lon=hapic_data.body.lon)
-  return sensor
+    print(hapic_data.body)
+    sensor.location = Location(lat=hapic_data.body.lat, lon=hapic_data.body.lon)
+    return sensor
+
 
 @hapic.with_api_doc()
 @hapic.output_body(Sensor)
 async def GET_sensor(request):
-  return sensor
+    return sensor
+
 
 app = web.Application()
-app.add_routes([
-    web.get(r'/about', GET_about),
-    web.put(r'/sensor/name', PUT_sensor_name),
-    web.put(r'/sensor/location', PUT_sensor_location),
-    web.get(r'/sensor', GET_sensor),
-])
-
-hapic.set_context(
-    AiohttpContext(
-        app,
-        default_error_builder=SerpycoDefaultErrorBuilder()
-    )
+app.add_routes(
+    [
+        web.get(r"/about", GET_about),
+        web.put(r"/sensor/name", PUT_sensor_name),
+        web.put(r"/sensor/location", PUT_sensor_location),
+        web.get(r"/sensor", GET_sensor),
+    ]
 )
 
-hapic.add_documentation_view('/api/doc', 'DOC', 'Generated doc')
+hapic.set_context(
+    AiohttpContext(app, default_error_builder=SerpycoDefaultErrorBuilder())
+)
+
+hapic.add_documentation_view("/api/doc", "DOC", "Generated doc")
 print(json.dumps(hapic.generate_doc()))
 aiohttp_autoreload.start()
 web.run_app(app)

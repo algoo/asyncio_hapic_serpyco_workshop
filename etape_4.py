@@ -114,7 +114,7 @@ async def PUT_sensor_location(request, hapic_data: HapicData):
 app = web.Application()
 app.add_routes(
     [
-        web.get("/ws", GET_establish_new_connection),
+        web.get("/sensor/events", GET_establish_new_connection),
         web.put(r"/sensor/name", PUT_sensor_name),
         web.put(r"/sensor/location", PUT_sensor_location),
     ]
