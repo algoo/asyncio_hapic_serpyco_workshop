@@ -4,9 +4,8 @@ Création du virtualenv
 
 Instrallation des dépendances
 
-    pip install hapic[serpyco]
-    pip install aiohttp
-    pip install aiohttp_autoreload
+    pip install pip==18.1
+    pip install "hapic[serpyco]" aiohttp aiohttp_autoreload
     
 Scenario :
 
