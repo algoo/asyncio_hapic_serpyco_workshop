@@ -29,15 +29,13 @@ def get_ip():
 
 @dataclass
 class Location(object):
+  def get_openstreetmap_url(obj: "Location") -> dict:
+    return f"https://www.openstreetmap.org/search?#map=13/{obj.lat}/{obj.lon}"
+
   lon: float=serpyco.number_field(cast_on_load=True)
   lat: float=serpyco.number_field(cast_on_load=True)
-  #url: typing.Optional[str] = serpyco.string_field(getter="get_openstreetmap_url", init=False)
+  url: typing.Optional[str] = serpyco.string_field(getter=get_openstreetmap_url, default=None)
 
-  def get_openstreetmap_url(data: dict) -> dict:
-    data['url'] = f"https://www.openstreetmap.org/search?#map=13/{data['lat']}/{data['lon']}"
-    return data
-
-Location(lon=13,lat=24)
 
 @dataclass
 class Sensor:
