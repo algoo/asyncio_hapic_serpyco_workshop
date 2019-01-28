@@ -94,11 +94,27 @@ async def PATCH_sensor(request, hapic_data: HapicData):
 
   return sensor
 
+import random
+@dataclass
+class Measure:
+  datetime: datetime.datetime
+  value: float
+
+@hapic.with_api_doc()
+@hapic.input_path(EmptyPath)
+@hapic.output_stream(Measure)
+async def GET_sensor_live(request, hapic_data: HapicData):
+  while True:
+    yield Measure(datetime.datetime.now(), random.uniform(36.0, 39.0))
+    await asyncio.sleep(1)
+
+
 
 app = web.Application()
 app.add_routes([
     web.get(r'/about', GET_about),
     web.patch(r'/sensor', PATCH_sensor),
+    web.get(r'/sensor/live', GET_sensor_live),
 ])
 
 hapic.set_context(

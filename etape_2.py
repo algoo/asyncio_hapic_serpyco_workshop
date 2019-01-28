@@ -65,9 +65,8 @@ class SensorName:
   name: str
 
 @hapic.with_api_doc()
-@hapic.input_path(EmptyPath)
 @hapic.output_body(About)
-async def GET_about(request, hapic_data: HapicData):
+async def GET_about(request):
     return About(
       current_datetime=datetime.datetime.now(),
       ip=get_ip(),
@@ -77,7 +76,7 @@ async def GET_about(request, hapic_data: HapicData):
 @hapic.input_path(EmptyPath)
 @hapic.input_body(SensorName)
 @hapic.output_body(Sensor)
-async def PUT_sensor_name(request, hapic_data: HapicData):
+async def PUT_sensor_name(request):
   print(hapic_data.body)
   sensor.name = hapic_data.body.name
   return sensor
@@ -91,11 +90,17 @@ async def PUT_sensor_location(request, hapic_data: HapicData):
   sensor.location = Location(lat=hapic_data.body.lat, lon=hapic_data.body.lon)
   return sensor
 
+@hapic.with_api_doc()
+@hapic.output_body(Sensor)
+async def GET_sensor(request):
+  return sensor
+
 app = web.Application()
 app.add_routes([
     web.get(r'/about', GET_about),
     web.put(r'/sensor/name', PUT_sensor_name),
     web.put(r'/sensor/location', PUT_sensor_location),
+    web.get(r'/sensor', GET_sensor),
 ])
 
 hapic.set_context(
