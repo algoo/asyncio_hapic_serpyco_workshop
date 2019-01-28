@@ -51,6 +51,7 @@ class About(object):
 
 
 sensor = Sensor(name="<no name>", location=Location(lon=19, lat=32))
+sensor_serializer = serpyco.Serializer(Sensor)
 
 
 @dataclass
@@ -61,9 +62,6 @@ class EmptyPath(object):
 @dataclass
 class SensorName:
     name: str
-
-
-sensor_serializer = serpyco.Serializer(Sensor)
 
 
 async def GET_establish_new_connection(request: web.Request):
